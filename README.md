@@ -127,4 +127,9 @@ See `docs/setup.md` for detailed manual installation instructions.
 ./scripts/stop.sh          # Stop all services
 ```
 
+---
+
+[![Made with Manus](https://github.com/user-attachments/assets/08f88b07-171b-4a89-94fc-abbf8f38319e)](https://manus.im/share/aCesEV3sndSWZ3B31WMI7u?replay=1)
+
+
 
