@@ -1,0 +1,183 @@
+<?php
+
+/**
+ * @file
+ * Contains headless_api.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+
+/**
+ * Implements hook_help().
+ */
+function headless_api_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.headless_api':
+      return '<p>' . t('This module provides enhanced API functionality for headless Drupal implementations.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_jsonapi_entity_filter_access().
+ */
+function headless_api_jsonapi_entity_filter_access(EntityInterface $entity, AccountInterface $account) {
+  // Allow filtering for published content
+  if ($entity->getEntityTypeId() === 'node' && $entity->hasField('status')) {
+    return AccessResult::allowedIf($entity->get('status')->value == 1);
+  }
+  return AccessResult::neutral();
+}
+
+/**
+ * Implements hook_entity_view_alter().
+ */
+function headless_api_entity_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display) {
+  // Add custom metadata to API responses
+  if ($display->getTargetEntityTypeId() === 'node') {
+    $build['#cache']['contexts'][] = 'url.query_args';
+    
+    // Add SEO metadata
+    if ($entity->hasField('field_meta_description')) {
+      $build['meta_description'] = [
+        '#markup' => $entity->get('field_meta_description')->value,
+        '#weight' => -10,
+      ];
+    }
+    
+    // Add reading time estimation
+    if ($entity->hasField('body')) {
+      $body_text = strip_tags($entity->get('body')->value);
+      $word_count = str_word_count($body_text);
+      $reading_time = ceil($word_count / 200); // Average reading speed
+      
+      $build['reading_time'] = [
+        '#markup' => $reading_time,
+        '#weight' => -9,
+      ];
+    }
+  }
+}
+
+/**
+ * Implements hook_rest_resource_alter().
+ */
+function headless_api_rest_resource_alter(&$definitions) {
+  // Modify REST resource definitions if needed
+  foreach ($definitions as $id => $definition) {
+    if (strpos($id, 'entity:') === 0) {
+      // Add custom serialization context
+      $definitions[$id]['serialization_class'] = 'Drupal\headless_api\Normalizer\CustomEntityNormalizer';
+    }
+  }
+}
+
+/**
+ * Custom API endpoint for site metadata.
+ */
+function headless_api_site_metadata() {
+  $config = \Drupal::config('system.site');
+  $theme_config = \Drupal::config('system.theme');
+  
+  $metadata = [
+    'name' => $config->get('name'),
+    'slogan' => $config->get('slogan'),
+    'mail' => $config->get('mail'),
+    'default_theme' => $theme_config->get('default'),
+    'admin_theme' => $theme_config->get('admin'),
+    'api_version' => '1.0',
+    'drupal_version' => \Drupal::VERSION,
+    'timestamp' => time(),
+  ];
+  
+  return new JsonResponse($metadata);
+}
+
+/**
+ * Custom API endpoint for menu data.
+ */
+function headless_api_menu_data($menu_name) {
+  $menu_tree = \Drupal::menuTree();
+  $parameters = $menu_tree->getCurrentRouteMenuTreeParameters($menu_name);
+  
+  // Load the tree based on this set of parameters.
+  $tree = $menu_tree->load($menu_name, $parameters);
+  
+  // Transform the tree using the manipulators you want.
+  $manipulators = [
+    ['callable' => 'menu.default_tree_manipulators:checkAccess'],
+    ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
+  ];
+  $tree = $menu_tree->transform($tree, $manipulators);
+  
+  // Build the menu tree
+  $build = $menu_tree->build($tree);
+  
+  // Convert to array format suitable for JSON API
+  $menu_items = [];
+  foreach ($tree as $element) {
+    $menu_items[] = _headless_api_build_menu_item($element);
+  }
+  
+  return new JsonResponse([
+    'menu_name' => $menu_name,
+    'items' => $menu_items,
+  ]);
+}
+
+/**
+ * Helper function to build menu item data.
+ */
+function _headless_api_build_menu_item($element) {
+  $link = $element->link;
+  $item = [
+    'title' => $link->getTitle(),
+    'url' => $link->getUrlObject()->toString(),
+    'weight' => $link->getWeight(),
+    'expanded' => $link->isExpanded(),
+    'enabled' => $link->isEnabled(),
+    'attributes' => [],
+  ];
+  
+  // Add children if they exist
+  if ($element->hasChildren) {
+    $item['children'] = [];
+    foreach ($element->subtree as $child) {
+      $item['children'][] = _headless_api_build_menu_item($child);
+    }
+  }
+  
+  return $item;
+}
+
+/**
+ * Implements hook_cors_request_alter().
+ */
+function headless_api_cors_request_alter(&$cors_config) {
+  // Allow additional headers for API requests
+  $cors_config['allowedHeaders'][] = 'X-API-Key';
+  $cors_config['allowedHeaders'][] = 'X-Requested-With';
+  $cors_config['allowedHeaders'][] = 'Accept';
+  $cors_config['allowedHeaders'][] = 'Content-Type';
+  $cors_config['allowedHeaders'][] = 'Authorization';
+  
+  // Allow credentials for authenticated requests
+  $cors_config['supportsCredentials'] = TRUE;
+}
+
+/**
+ * Implements hook_jsonapi_ENTITY_TYPE_filter_access() for node entities.
+ */
+function headless_api_jsonapi_node_filter_access(EntityInterface $entity, AccountInterface $account) {
+  // Custom access logic for nodes in JSON API
+  if ($entity->bundle() === 'article' || $entity->bundle() === 'page') {
+    return AccessResult::allowedIf($entity->isPublished());
+  }
+  
+  return AccessResult::neutral();
+}
+

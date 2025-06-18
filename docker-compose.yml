@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: drupal_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: drupal
+      MYSQL_USER: drupal
+      MYSQL_PASSWORD: drupal
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  drupal:
+    image: drupal:10-php8.1-apache
+    container_name: drupal_app
+    ports:
+      - "8080:80"
+    volumes:
+      - ./drupal/web:/var/www/html
+      - ./drupal/config:/var/www/config
+      - ./drupal/modules:/var/www/html/modules/custom
+    environment:
+      DRUPAL_DATABASE_HOST: mysql
+      DRUPAL_DATABASE_PORT: 3306
+      DRUPAL_DATABASE_NAME: drupal
+      DRUPAL_DATABASE_USERNAME: drupal
+      DRUPAL_DATABASE_PASSWORD: drupal
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: drupal_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: drupal_mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  default:
+    name: drupal_network
+

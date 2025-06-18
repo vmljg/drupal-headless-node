@@ -1,0 +1,93 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/runtime/2.0.0.json",
+  "entrypoint": "main",
+  "autoload": {
+    "path": "./routes",
+    "exclude": ["*.test.js", "*.spec.js"]
+  },
+  "services": [
+    {
+      "id": "main",
+      "path": ".",
+      "config": "platformatic.service.json"
+    }
+  ],
+  "watch": {
+    "enabled": true,
+    "path": ".",
+    "ignore": [
+      "node_modules/**",
+      "dist/**",
+      "*.log",
+      ".git/**"
+    ]
+  },
+  "telemetry": {
+    "enabled": false
+  },
+  "server": {
+    "hostname": "0.0.0.0",
+    "port": 3001,
+    "cors": {
+      "origin": [
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "https://your-frontend-domain.com"
+      ],
+      "credentials": true,
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+      "allowedHeaders": [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Accept",
+        "Origin",
+        "X-API-Key",
+        "X-CSRF-Token"
+      ]
+    }
+  },
+  "logger": {
+    "level": "info",
+    "transport": {
+      "target": "pino-pretty",
+      "options": {
+        "colorize": true,
+        "translateTime": "HH:MM:ss Z",
+        "ignore": "pid,hostname"
+      }
+    }
+  },
+  "metrics": {
+    "enabled": true,
+    "endpoint": "/metrics",
+    "auth": false
+  },
+  "php": {
+    "docroot": "../drupal/web",
+    "argv": [],
+    "throwRequestErrors": false,
+    "rewriter": {
+      "rules": [
+        {
+          "match": "^/api/drupal/(.*)$",
+          "replace": "/$1"
+        },
+        {
+          "match": "^/jsonapi/(.*)$",
+          "replace": "/jsonapi/$1"
+        }
+      ]
+    }
+  },
+  "plugins": {
+    "paths": ["./plugins"]
+  },
+  "rateLimiting": {
+    "enabled": true,
+    "max": 1000,
+    "timeWindow": "1 minute",
+    "skipOnError": true
+  }
+}
+

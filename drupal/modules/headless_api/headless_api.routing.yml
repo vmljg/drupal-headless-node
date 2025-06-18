@@ -1,0 +1,33 @@
+headless_api.site_metadata:
+  path: '/api/site-metadata'
+  defaults:
+    _controller: '\Drupal\headless_api\Controller\ApiController::siteMetadata'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+headless_api.menu_data:
+  path: '/api/menu/{menu_name}'
+  defaults:
+    _controller: '\Drupal\headless_api\Controller\ApiController::menuData'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    menu_name: '^[a-zA-Z0-9_-]+$'
+
+headless_api.content_types:
+  path: '/api/content-types'
+  defaults:
+    _controller: '\Drupal\headless_api\Controller\ApiController::contentTypes'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+headless_api.search:
+  path: '/api/search'
+  defaults:
+    _controller: '\Drupal\headless_api\Controller\ApiController::search'
+  methods: [GET, POST]
+  requirements:
+    _access: 'TRUE'
+

@@ -1,0 +1,59 @@
+{
+  "name": "drupal-nextjs-frontend",
+  "version": "1.0.0",
+  "description": "Next.js frontend for headless Drupal with Platformatic integration",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "export": "next export"
+  },
+  "dependencies": {
+    "next": "^14.2.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "axios": "^1.7.2",
+    "swr": "^2.2.5",
+    "date-fns": "^3.6.0",
+    "html-react-parser": "^5.1.10",
+    "next-seo": "^6.5.0",
+    "react-intersection-observer": "^9.10.2",
+    "framer-motion": "^11.2.10",
+    "react-hook-form": "^7.51.5",
+    "react-query": "^3.39.3",
+    "js-cookie": "^3.0.5",
+    "classnames": "^2.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/js-cookie": "^3.0.6",
+    "typescript": "^5.4.5",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.3",
+    "tailwindcss": "^3.4.3",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "@tailwindcss/typography": "^0.5.13",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/aspect-ratio": "^0.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "nextjs",
+    "react",
+    "drupal",
+    "headless",
+    "platformatic",
+    "frontend"
+  ],
+  "author": "Manus AI",
+  "license": "MIT"
+}
+

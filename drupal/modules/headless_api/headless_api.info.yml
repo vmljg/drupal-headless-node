@@ -1,0 +1,15 @@
+name: 'Headless API'
+type: module
+description: 'Custom module for headless Drupal API enhancements'
+core_version_requirement: ^10
+package: 'Custom'
+dependencies:
+  - drupal:jsonapi
+  - drupal:rest
+  - drupal:serialization
+  - drupal:hal
+  - jsonapi_extras:jsonapi_extras
+  - cors:cors
+  - simple_oauth:simple_oauth
+configure: headless_api.settings
+
